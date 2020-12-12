@@ -7,32 +7,50 @@ const rl = readline.createInterface({
   output: process.stdout,
 })
 
-console.log("Welcome to Todo CLI!")
+let input_file = process.argv[2];
 
+let view =[];
+const readingJson=()=>{
+    let rawdata = fs.readFileSync(input_file); // It can read files in a synchronous way,
+    // i.e. we are telling node.js to block other parallel process and do the current file reading process.
+    let student = JSON.parse(rawdata); //convert JSON data to string of arrays
+    for(let key in student){
+        if(student[key]['completed']===true){
+            view.push(`[✓] ${student[key]['title']}`)
+        }
+        else{
+            view.push(`[ ] ${student[key]['title']}`)
+        }
+    }
+
+}
+if(input_file !== undefined){
+    readingJson();
+    
+}
+
+console.log("Welcome to Todo CLI!")
 function todo()
 {
-    let view = []
+    
     function prompt()
     {
         rl.question('(v) View • ( n ) New • (cX) Complete • (dX) Delete • (s) Save • (q) Quit \n>', (input) => { 
         if(input === 'v'){
-        // if(view.length === 0){
-        //     console.log("List is empty...")
-        // }
-        // else
-        //     for(let i=0;i<view.length;i++)
-        //     {
-        //     console.log(`${i} : ${view[i]}`);
-        //     }
-        fs.readFile('./myList.json', {encoding: 'utf8'}, (err, content) => {
-            var data = JSON.parse(content);
-            for( let i=0;i<data.length;i++){
-                console.log(`${i} ${data[i]}`);    
+       
+        if(view.length === 0){
+            console.log("List is empty ...")
+            prompt();   
+        }
+         
+        else{
+            for (let i=0; i<view.length; i++){
+                console.log(`${i} ${view[i]}`);
             }
-            prompt(); 
-        });
             
-     } 
+            prompt();     
+        }
+    } 
     
     
     else if(input === 'n'){
@@ -52,11 +70,12 @@ function todo()
         {
             let item = view[index]
             let itemName = item.slice(3,item.length)
-            view[index] = '[X]' + itemName;
+            view[index] = '[✓]' + itemName;
             console.log(`Completed ${itemName}`);
             prompt();
         }   
     }
+    
     else if(input[0] === 'd'){
         const y = input.slice(1,input.length) 
         let index = parseInt(y)
@@ -69,7 +88,10 @@ function todo()
             let newList = []
             for(let i=0; i < view.length; i++)
             {
-                if(index === i)continue;
+                if(index === i){
+                    console.log(`Deleted "${view[index].slice(3)}"`)
+                }
+                else
                 newList.push(view[i]);
             }
             
@@ -79,8 +101,45 @@ function todo()
         
     }
     else if(input === 's'){
+        let final=[]; //created an empty array
+        for(let i=0; i< view.length;i++){
+            let obj={}; // created an empty object
+            if(view[i].includes('✓')){
+                obj['completed']=true;
+            }
+            else{
+                obj['completed']=false
+            }
+            obj['title']=view[i].slice(3)
+            final.push(obj)
+            
+        }
+       
+        const data = JSON.stringify(final) // convert string of arrays to JSON data
+
         rl.question('Where? \n>', path => {
-            const data = JSON.stringify(view)
+    
+           if(path === '' && input_file !== undefined){
+            fs.writeFile(input_file, data, 'utf8', err => {
+                if(err)
+                console.log(err);
+                else
+                console.log(`List saved to ${input_file}`);
+                prompt();
+            }) 
+            
+        }
+        
+        else if(path === '' && input_file === undefined){
+            fs.writeFile('./myList.json', data, 'utf8', err => {
+                if(err)
+                console.log(err);
+                else
+                console.log('List saved to myList.json');
+                prompt();
+            })
+        }
+        else{
             fs.writeFile(path, data, 'utf8', err => {
                 if(err)
                 console.log(err);
@@ -88,12 +147,13 @@ function todo()
                 console.log(`List saved to ${path}`);
                 prompt();
             }) 
+        }
         })
         
     }
 
     else if(input === 'q'){
-        console.log("See you soon!");
+        console.log("See you soon !😄");
         rl.close();
     }
     else{
