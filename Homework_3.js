@@ -61,7 +61,7 @@ function todo()
     }
     
     else if(input[0] === 'c'){
-        const x = input.slice(1,input.length) //c2 ->2
+        const x = input.slice(1,input.length) //c2 ->2 is an index 
         let index = parseInt(x)
         if(isNaN(x) || index >= view.length ){
             console.log("Invalid Input...")
@@ -75,7 +75,7 @@ function todo()
             prompt();
         }   
     }
-    
+
     else if(input[0] === 'd'){
         const y = input.slice(1,input.length) 
         let index = parseInt(y)
